@@ -17,6 +17,10 @@ const expenseSchema = new mongoose_1.Schema({
     description: {
         type: String,
         required: false
-    }
+    },
+    userId: {
+        type: String,
+        required: true,
+    },
 });
 exports.default = (0, mongoose_1.model)('Expense', expenseSchema);

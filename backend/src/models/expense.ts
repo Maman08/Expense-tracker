@@ -5,6 +5,7 @@ export interface IExpense extends Document {
     category: string;
     date: Date;
     description?: string;
+    userId:string;
   }
 const expenseSchema=new Schema<IExpense>({
     amount:{
@@ -22,6 +23,10 @@ const expenseSchema=new Schema<IExpense>({
     description:{
         type:String,
         required:false
-    }
+    },
+    userId: { 
+        type: String,
+        required: true,
+    },
 })
 export default model<IExpense>('Expense', expenseSchema);

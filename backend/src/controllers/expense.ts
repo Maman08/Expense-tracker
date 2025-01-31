@@ -1,45 +1,26 @@
-// import Expense from "../models/expense"
-
-
-// const addItem=async(req: any,res: any)=>{
-//     const {amount,category,date,description}=req.body;
-//     try{
-//         const expense= new Expense({
-//              amount,category,date,description
-//         })
-//         await expense.save();
-//         res.status(200).json({msg:"Expense added successfully"})
-//     }catch(e:any){
-//         res.status(400).json({msg:"Error in adding expense"})
-
-//     }
-
-// }
-
-// const getExpense=async(req: any,res: any)=>{
-    
-// }
-
-
 import Expense, { IExpense } from "../models/expense";
 
 export const createExpense = async (req: any, res: any) => {
   const { amount, category, date, description } = req.body;
 
   try {
-    const expense = new Expense({ amount, category, date, description });
+    if(!req.user) return res.status(401).json({message:"Unauthorized"});
+    console.log("userid",req.user.userId)
+    const expense =new Expense({amount,category,date,description,userId: req.user.userId });
     console.log(expense)
     await expense.save();
     return res.status(201).json(expense);
-    console.log("didnt reach here")
-  } catch (error) {
-    return res.status(500).json({ message: 'Server error' });
+    // console.log("didnt reach here")
+  } catch(error){
+    return res.status(500).json({ message:'Server error' });
   }
 };
 
 export const getExpenses = async (req: any, res: any) => {
   try {
-    const expenses = await Expense.find();
+    if(!req.user) return res.status(401).json({message:"Unauthorized"});
+    console.log("Hello",req.user.userId )
+    const expenses = await Expense.find({userId: req.user.userId });
     return res.json(expenses);
   } catch (error) {
     return res.status(500).json({ message: 'Server error' });

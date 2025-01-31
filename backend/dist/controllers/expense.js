@@ -1,5 +1,4 @@
 "use strict";
-// import Expense from "../models/expense"
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -14,29 +13,18 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.deleteExpense = exports.updateExpense = exports.getExpenses = exports.createExpense = void 0;
-// const addItem=async(req: any,res: any)=>{
-//     const {amount,category,date,description}=req.body;
-//     try{
-//         const expense= new Expense({
-//              amount,category,date,description
-//         })
-//         await expense.save();
-//         res.status(200).json({msg:"Expense added successfully"})
-//     }catch(e:any){
-//         res.status(400).json({msg:"Error in adding expense"})
-//     }
-// }
-// const getExpense=async(req: any,res: any)=>{
-// }
 const expense_1 = __importDefault(require("../models/expense"));
 const createExpense = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { amount, category, date, description } = req.body;
     try {
-        const expense = new expense_1.default({ amount, category, date, description });
+        if (!req.user)
+            return res.status(401).json({ message: "Unauthorized" });
+        console.log("userid", req.user.userId);
+        const expense = new expense_1.default({ amount, category, date, description, userId: req.user.userId });
         console.log(expense);
         yield expense.save();
         return res.status(201).json(expense);
-        console.log("didnt reach here");
+        // console.log("didnt reach here")
     }
     catch (error) {
         return res.status(500).json({ message: 'Server error' });
@@ -45,7 +33,10 @@ const createExpense = (req, res) => __awaiter(void 0, void 0, void 0, function* 
 exports.createExpense = createExpense;
 const getExpenses = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const expenses = yield expense_1.default.find();
+        if (!req.user)
+            return res.status(401).json({ message: "Unauthorized" });
+        console.log("Hello", req.user.userId);
+        const expenses = yield expense_1.default.find({ userId: req.user.userId });
         return res.json(expenses);
     }
     catch (error) {
