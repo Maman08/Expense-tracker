@@ -19,7 +19,7 @@ const LoginPage = () => {
         password,
       });
       localStorage.setItem('jwt_token', response.data.token);
-      navigate('/dashboard');
+      navigate('/');
     } catch (err) {
       setError('Invalid credentials');
     }
