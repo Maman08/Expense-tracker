@@ -1,11 +1,12 @@
-import mongoose from "mongoose";
+import { Schema, model, Document } from "mongoose";
 
-const expenseSchema=new mongoose.Schema({
-    userId:{
-        type:mongoose.Schema.Types.ObjectId,
-        ref:'user',
-        required:true,
-    },
+export interface IExpense extends Document {
+    amount: number;
+    category: string;
+    date: Date;
+    description?: string;
+  }
+const expenseSchema=new Schema<IExpense>({
     amount:{
         type:Number,
         required:true,
@@ -23,4 +24,4 @@ const expenseSchema=new mongoose.Schema({
         required:false
     }
 })
-module.exports=mongoose.model('expense',expenseSchema)
+export default model<IExpense>('Expense', expenseSchema);

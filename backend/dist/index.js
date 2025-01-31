@@ -9,6 +9,7 @@ const cookie_parser_1 = __importDefault(require("cookie-parser"));
 const dotenv_1 = __importDefault(require("dotenv"));
 const index_1 = __importDefault(require("./utils/index"));
 const index_2 = __importDefault(require("./routes/index"));
+const expenseroute_1 = __importDefault(require("./routes/expenseroute"));
 dotenv_1.default.config();
 const app = (0, express_1.default)();
 const PORT = 8000;
@@ -20,6 +21,7 @@ app.get('/', (req, res) => {
     res.send('hello ');
 });
 app.use('/api', index_2.default);
+app.use('/api', expenseroute_1.default);
 app.listen(PORT, () => {
     console.log(`server is running on port ${PORT}`);
 });
