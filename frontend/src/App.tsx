@@ -51,12 +51,22 @@ function App() {
   const[lastName,setLastName]=useState('');
   const [email,setEmail]=useState('');
   const [password,setPassword]=useState('');
-  
+  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
+  const [showAuthModal, setShowAuthModal] = useState(false);
+
+
   useEffect(() => {
     document.documentElement.style.scrollBehavior = 'smooth';
     return () => {
       document.documentElement.style.scrollBehavior = 'auto';
     };
+  }, []);
+
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      setIsLoggedIn(true);
+    }
   }, []);
 
   useEffect(() => {
@@ -93,7 +103,8 @@ function App() {
       console.error("Error adding expense:", error);
       // Handle unauthorized error
       if (error.response?.status === 401) {
-        // Show login dialog or redirect to login
+        setIsLoggedIn(false);
+        setShowAuthModal(true);
         console.log('login kro ')
       }
     }
@@ -119,16 +130,52 @@ function App() {
   };
   // const handleSignup=async()=>{
 
+  // const handleSignup = async () => {
+  //   try {
+  //     localStorage.removeItem('token');
+  //     const response = await axios.post('http://localhost:8000/api/signup', {
+  //       firstName, lastName, email, password,
+  //     });
+      
+  //     localStorage.setItem('token', response.data.token);
+  //     setIsLoggedIn(true);
+  //     setShowAuthModal(false);
+  //     const expensesResponse = await api.get('/expenses');
+  //     setExpenses(expensesResponse.data);
+  //   } catch (error:any) {
+  //     console.log('Signup error:', error.response?.data?.message);
+  //   }
+  // };
+  
+
   const handleSignup = async () => {
     try {
-      const response = await axios.post('http://localhost:8000/api/signup', {
+      localStorage.removeItem('token');
+      
+      // Step 1: Call signup API
+      const signupResponse = await axios.post('http://localhost:8000/api/signup', {
         firstName, lastName, email, password,
       });
-      console.log(response.data);
+  
+      // Step 2: Now, immediately sign in after successful signup
+      const signinResponse = await api.post('/signin', {
+        email,
+        password,
+      });
+  
+      localStorage.setItem('token', signinResponse.data.token);
+      setIsLoggedIn(true);
+      setShowAuthModal(false);
+  
+      // Fetch the user's expenses after signing in
+      const expensesResponse = await api.get('/expenses');
+      setExpenses(expensesResponse.data);
+  
     } catch (error:any) {
       console.log('Signup error:', error.response?.data?.message);
     }
   };
+
   
   const handleSignin=async()=>{
     try {
@@ -137,12 +184,25 @@ function App() {
         password,
       });
       localStorage.setItem('token', response.data.token);
+      setIsLoggedIn(true);
+      setShowAuthModal(false);
       const expensesResponse = await api.get('/expenses');
       setExpenses(expensesResponse.data);
     }catch(error){
       console.log('error in signin/frontend')
     }
   }
+  
+  const handleLogout = async () => {
+    try {
+      await axios.post('http://localhost:8000/api/logout');
+      localStorage.removeItem('token');
+      setIsLoggedIn(false);
+      setExpenses([]);
+    } catch (error) {
+      console.error('Error during logout', error);
+    }
+  };
 
   const filteredExpenses = expenses.filter(expense => 
     !filterCategory || filterCategory === 'all' || expense.category === filterCategory
@@ -171,7 +231,28 @@ function App() {
               </h1>
             </div>
             <div className="flex items-center gap-4">
-              <Dialog>
+             
+
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                onClick={toggleTheme} 
+                className="ml-2 hover:scale-110 transition-transform"
+              >
+                {theme === 'dark' ? (
+                  <Sun className="h-5 w-5" />
+                ) : (
+                  <Moon className="h-5 w-5" />
+                )}
+              </Button>
+              {isLoggedIn?(
+                 <Button onClick={handleLogout} variant="destructive" className="gap-2 hover:scale-105 transition-transform">
+                 Logout
+               </Button>
+
+              ):(
+                <div>
+                   <Dialog>
                 <DialogTrigger asChild>
                   <Button variant="outline" className="gap-2 hover:scale-105 transition-transform">
                     <LogIn className="h-4 w-4" /> Login
@@ -233,19 +314,8 @@ function App() {
                   </div>
                 </DialogContent>
               </Dialog>
-
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                onClick={toggleTheme} 
-                className="ml-2 hover:scale-110 transition-transform"
-              >
-                {theme === 'dark' ? (
-                  <Sun className="h-5 w-5" />
-                ) : (
-                  <Moon className="h-5 w-5" />
-                )}
-              </Button>
+                </div>
+              )}
             </div>
           </div>
 
