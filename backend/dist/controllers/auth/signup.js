@@ -25,7 +25,7 @@ const signup = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         const hashedPassword = yield bcrypt_1.default.hash(password, 10);
         const user = new user_1.default({ firstName, lastName, email, password: hashedPassword });
         yield user.save();
-        const token = jsonwebtoken_1.default.sign({ userId: user._id }, process.env.JWT_SECRET || 'secret', { expiresIn: '1h' });
+        const token = jsonwebtoken_1.default.sign({ userId: user._id, firstName: user.firstName }, process.env.JWT_SECRET || 'secret', { expiresIn: '1h' });
         res.cookie('token', token, { httpOnly: true, secure: process.env.NODE_ENV === 'production' });
         return res.status(201).json({ message: 'User registered successfully' });
     }

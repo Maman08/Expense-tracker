@@ -14,7 +14,7 @@ const signup=async(req: any,res: any)=>{
         const hashedPassword=await bcrypt.hash(password,10);
         const user=new User({firstName,lastName,email,password:hashedPassword})
         await user.save();
-        const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET || 'secret', { expiresIn: '1h' });
+        const token = jwt.sign({ userId: user._id,firstName:user.firstName}, process.env.JWT_SECRET || 'secret', { expiresIn: '1h' });
         res.cookie('token', token, { httpOnly: true, secure: process.env.NODE_ENV === 'production' });
         return res.status(201).json({ message: 'User registered successfully' });
     }catch (error) {

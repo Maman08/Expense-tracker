@@ -15,8 +15,7 @@ import { Calendar as CalendarComponent } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import axios from 'axios';
 import api from './utils/axios-config.ts';
-
-
+import { jwtDecode } from "jwt-decode";
 
 type Expense = {
   id: string;
@@ -53,7 +52,7 @@ function App() {
   const [password,setPassword]=useState('');
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
-
+  const [firstNamee, setFirstNamee] = useState('');
 
   useEffect(() => {
     document.documentElement.style.scrollBehavior = 'smooth';
@@ -81,6 +80,23 @@ function App() {
         }
       });
   }, []);
+
+  const getFirstNameFromToken = () => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      const decodedToken = jwtDecode(token);
+      console.log(decodedToken.firstName)
+      return decodedToken.firstName; 
+    }
+    return null;
+  };
+  useEffect(() => {
+    const userId = getFirstNameFromToken();
+    if (userId) {
+      setFirstNamee(firstName);
+    }
+  }, []);
+  
 
   const handleAddExpense = async () => {
     if (!amount || !category) return;
@@ -164,6 +180,7 @@ function App() {
       });
   
       localStorage.setItem('token', signinResponse.data.token);
+      console.log("fid",signinResponse.data.token)
       setIsLoggedIn(true);
       setShowAuthModal(false);
   
@@ -184,6 +201,11 @@ function App() {
         password,
       });
       localStorage.setItem('token', response.data.token);
+      console.log("fid",response.data.token)
+      const decodedToken = jwtDecode(response.data.token);
+    const userId = decodedToken.firstName;
+
+    setFirstNamee(userId);
       setIsLoggedIn(true);
       setShowAuthModal(false);
       const expensesResponse = await api.get('/expenses');
@@ -203,7 +225,9 @@ function App() {
       console.error('Error during logout', error);
     }
   };
-
+  function capitalizeFirstLetter(str:any) {
+    return str.charAt(0).toUpperCase() + str.slice(1);
+}
   const filteredExpenses = expenses.filter(expense => 
     !filterCategory || filterCategory === 'all' || expense.category === filterCategory
   );
@@ -229,6 +253,18 @@ function App() {
               <h1 className="text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary/70">
                 Expense Tracker
               </h1>
+            </div>
+            <div>
+              {isLoggedIn?(
+                <h1 className="text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary/70">
+                Welcome {capitalizeFirstLetter(firstNamee)} !!
+              </h1>
+              ):(
+                <h1 className="text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary/70">
+               
+              </h1>
+              )}
+              
             </div>
             <div className="flex items-center gap-4">
              
