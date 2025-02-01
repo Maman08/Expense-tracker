@@ -32,18 +32,13 @@
 
 
 
-
-
-
-
 import axios from 'axios';
 
 const api = axios.create({
   baseURL: 'https://expense-tracker-ass.up.railway.app/api',
   withCredentials: true,
   headers: {
-    'Content-Type': 'application/json',
-    // Don't set default Authorization header here
+    'Content-Type': 'application/json'
   }
 });
 
@@ -54,6 +49,8 @@ api.interceptors.request.use(
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
+    // Ensure CORS headers are respected
+    config.headers['Access-Control-Allow-Origin'] = 'https://expense-tracker-orcin-five.vercel.app';
     return config;
   },
   (error) => {
@@ -67,7 +64,7 @@ api.interceptors.response.use(
   async (error) => {
     if (error.response?.status === 401) {
       localStorage.removeItem('token');
-      window.location.href = '/'; 
+      window.location.href = '/';
     }
     return Promise.reject(error);
   }
