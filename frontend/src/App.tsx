@@ -13,13 +13,17 @@ import { Calendar as CalendarIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Calendar as CalendarComponent } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import axios from 'axios';
+import api from './utils/axios-config.ts';
+
+
 
 type Expense = {
   id: string;
   amount: number;
   category: string;
   description: string;
-  date: string;
+  date: Date;
 };
 
 const categories = [
@@ -43,7 +47,11 @@ function App() {
   const [filterCategory, setFilterCategory] = useState('');
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [selectedExpense, setSelectedExpense] = useState<string | null>(null);
-
+  const [firstName, setFirstName] = useState('');
+  const[lastName,setLastName]=useState('');
+  const [email,setEmail]=useState('');
+  const [password,setPassword]=useState('');
+  
   useEffect(() => {
     document.documentElement.style.scrollBehavior = 'smooth';
     return () => {
@@ -51,36 +59,90 @@ function App() {
     };
   }, []);
 
-  const handleAddExpense = () => {
-    if (!amount || !category) return;
+  useEffect(() => {
+    api.get('/expenses')
+      .then((response) => {
+        setExpenses(response.data);
+      })
+      .catch((error) => {
+        console.error("Error fetching expenses:", error);
+        if (error.response?.status === 401) {
+          // Handle unauthorized error
+        }
+      });
+  }, []);
 
-    const newExpense: Expense = {
-      id: crypto.randomUUID(),
+  const handleAddExpense = async () => {
+    if (!amount || !category) return;
+  
+    const newExpense = {
       amount: parseFloat(amount),
       category,
+      date,
       description,
-      date: date.toISOString(),
     };
-
-    setExpenses(prev => [newExpense, ...prev]);
-    setAmount('');
-    setCategory('');
-    setDescription('');
-    setDate(new Date());
+  
+    try {
+      const response = await api.post('/expense', newExpense);
+      setExpenses((prev) => [response.data, ...prev]);
+      setAmount("");
+      setCategory("");
+      setDescription("");
+      setDate(new Date());
+    } catch (error:any) {
+      console.error("Error adding expense:", error);
+      // Handle unauthorized error
+      if (error.response?.status === 401) {
+        // Show login dialog or redirect to login
+        console.log('login kro ')
+      }
+    }
   };
+  
 
   const handleDeleteExpense = (id: string) => {
     setSelectedExpense(id);
     setShowDeleteConfirm(true);
   };
 
-  const confirmDelete = () => {
+  const confirmDelete = async () => {
     if (selectedExpense) {
-      setExpenses(prev => prev.filter(exp => exp.id !== selectedExpense));
-      setShowDeleteConfirm(false);
-      setSelectedExpense(null);
+      try {
+        await axios.delete(`${'http://localhost:8000/api/expense'}/${selectedExpense}`);
+        setExpenses((prev) => prev.filter((exp) => exp.id !== selectedExpense));
+        setShowDeleteConfirm(false);
+        setSelectedExpense(null);
+      } catch (error) {
+        console.error("Error deleting expense:", error);
+      }
     }
   };
+  // const handleSignup=async()=>{
+
+  const handleSignup = async () => {
+    try {
+      const response = await axios.post('http://localhost:8000/api/signup', {
+        firstName, lastName, email, password,
+      });
+      console.log(response.data);
+    } catch (error:any) {
+      console.log('Signup error:', error.response?.data?.message);
+    }
+  };
+  
+  const handleSignin=async()=>{
+    try {
+      const response = await api.post('/signin', {
+        email,
+        password,
+      });
+      localStorage.setItem('token', response.data.token);
+      const expensesResponse = await api.get('/expenses');
+      setExpenses(expensesResponse.data);
+    }catch(error){
+      console.log('error in signin/frontend')
+    }
+  }
 
   const filteredExpenses = expenses.filter(expense => 
     !filterCategory || filterCategory === 'all' || expense.category === filterCategory
@@ -122,13 +184,15 @@ function App() {
                   <div className="space-y-4 py-4">
                     <div className="space-y-2">
                       <Label htmlFor="email">Email</Label>
-                      <Input id="email" type="email" placeholder="Enter your email" />
+                      <Input id="email" type="email" placeholder="Enter your email" value={email}
+                      onChange={(e) => setEmail(e.target.value)} />
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="password">Password</Label>
-                      <Input id="password" type="password" placeholder="Enter your password" />
+                      <Input id="password" type="password" placeholder="Enter your password" value={password}
+                      onChange={(e) => setPassword(e.target.value)}/>
                     </div>
-                    <Button className="w-full hover:scale-[1.02] transition-transform">Login</Button>
+                    <Button className="w-full hover:scale-[1.02] transition-transform" onClick={handleSignin}>Login</Button>
                   </div>
                 </DialogContent>
               </Dialog>
@@ -144,19 +208,28 @@ function App() {
                     <DialogTitle>Create an account</DialogTitle>
                   </DialogHeader>
                   <div className="space-y-4 py-4">
+                  <div className="space-y-2">
+                      <Label htmlFor="signup-firstName">First Name</Label>
+                      <Input id="signup-firstName" type="firstName" placeholder="Enter your First Name" value={firstName}
+                      onChange={(e) => setFirstName(e.target.value)} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="signup-lastName">Last Name</Label>
+                      <Input id="signup-lastName" type="lastName" placeholder="Enter your Last Name" value={lastName}
+                      onChange={(e) => setLastName(e.target.value)}/>
+                    </div>
                     <div className="space-y-2">
                       <Label htmlFor="signup-email">Email</Label>
-                      <Input id="signup-email" type="email" placeholder="Enter your email" />
+                      <Input id="signup-email" type="email" placeholder="Enter your email" value={email}
+                      onChange={(e) => setEmail(e.target.value)}/>
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="signup-password">Password</Label>
-                      <Input id="signup-password" type="password" placeholder="Create a password" />
+                      <Input id="signup-password" type="password" placeholder="Create a password" value={password}
+                      onChange={(e) => setPassword(e.target.value)} />
                     </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="confirm-password">Confirm Password</Label>
-                      <Input id="confirm-password" type="password" placeholder="Confirm your password" />
-                    </div>
-                    <Button className="w-full hover:scale-[1.02] transition-transform">Create Account</Button>
+                    
+                    <Button className="w-full hover:scale-[1.02] transition-transform" onClick={handleSignup}>Create Account</Button>
                   </div>
                 </DialogContent>
               </Dialog>
