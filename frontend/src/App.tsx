@@ -192,7 +192,7 @@ function App() {
     console.log('selected expense', selectedExpense);
     if (selectedExpense) {
       try {
-        await axios.delete(`${'http://localhost:8000/api/expense'}/${selectedExpense}`);
+        await axios.delete(`${'https://expense-tracker-ass.up.railway.app/api/expense'}/${selectedExpense}`);
         setExpenses((prev) => prev.filter((exp) => exp._id !== selectedExpense)); 
         setSelectedExpense(null);
         setShowUpdateConfirm(false);
@@ -207,7 +207,7 @@ function App() {
     try {
       localStorage.removeItem('token');
       
-      const signupResponse = await axios.post('http://localhost:8000/api/signup', {
+      const signupResponse = await axios.post('https://expense-tracker-ass.up.railway.app/api/signup', {
         firstName, lastName, email, password,
       });
       console.log(signupResponse)
@@ -255,7 +255,7 @@ function App() {
   
   const handleLogout = async () => {
     try {
-      await axios.post('http://localhost:8000/api/logout');
+      await axios.post('https://expense-tracker-ass.up.railway.app/api/logout');
       localStorage.removeItem('token');
       setIsLoggedIn(false);
       setExpenses([]);
