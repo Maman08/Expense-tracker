@@ -10,18 +10,13 @@ const app=express();
 const PORT=8000
 
 
-app.use((req:any, res:any, next) => {
-    res.setHeader('Access-Control-Allow-Origin', 'https://expense-tracker-orcin-five.vercel.app');
-    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-    res.setHeader('Access-Control-Allow-Credentials', 'true');
-    
-    // Handle preflight requests
-    if (req.method === 'OPTIONS') {
-      return res.sendStatus(200);
-    }
-    next();
-  });
+const corsOptions = {
+    origin: ['https://expense-tracker-orcin-five.vercel.app'], // List allowed origins
+    credentials: true, // Allow credentials like cookies to be sent
+  };
+  
+  app.use(cors(corsOptions));
+  
 app.use(express.json())
 app.use(cookieParser());
 connectDB();
