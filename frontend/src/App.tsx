@@ -192,13 +192,14 @@ function App() {
     console.log("yhaa aayaaa")
   }
   
-  const confirmDelete = async (selectedExpense: string) => {
+  const confirmDelete = async () => {
     console.log('selected expense', selectedExpense);
     if (selectedExpense) {
       try {
         await axios.delete(`${'http://localhost:8000/api/expense'}/${selectedExpense}`);
         setExpenses((prev) => prev.filter((exp) => exp._id !== selectedExpense)); 
         setSelectedExpense(null);
+        setShowUpdateConfirm(false);
       } catch (error) {
         console.error("Error deleting expense:", error);
       }
@@ -574,17 +575,7 @@ function App() {
                         </div>
                       </div>
                     </div>
-                    <div className="flex items-center gap-4">
-                      <p className="text-xl font-semibold">${expense.amount.toFixed(2)}</p>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="opacity-0 group-hover:opacity-100 transition-opacity"
-                        onClick={() => confirmDelete(expense._id)}
-                      >
-                        <Trash2 className="h-4 w-4 text-destructive" />
-                      </Button>
-                    </div>
+                    
                   </div>
                 ))
               )}
@@ -677,6 +668,13 @@ function App() {
         >
           Update Expense
         </Button>
+                      
+        <Button className="w-full text-lg py-6 transition-all hover:scale-[1.02] bg-gradient-to-r from-primary to-primary/80" 
+        onClick={ confirmDelete}>
+        Delete                
+        <Trash2 className="h-4 w-4 text-destructive" />
+        </Button>
+                    
       </div>
     </Card>
   </DialogContent>
