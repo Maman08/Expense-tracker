@@ -53,6 +53,8 @@ function App() {
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [firstNamee, setFirstNamee] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const expensesPerPage = 5;
 
   useEffect(() => {
     document.documentElement.style.scrollBehavior = 'smooth';
@@ -76,7 +78,8 @@ function App() {
       .catch((error) => {
         console.error("Error fetching expenses:", error);
         if (error.response?.status === 401) {
-          // Handle unauthorized error
+          console.log("unauthorized")
+
         }
       });
   }, []);
@@ -117,7 +120,6 @@ function App() {
       setDate(new Date());
     } catch (error:any) {
       console.error("Error adding expense:", error);
-      // Handle unauthorized error
       if (error.response?.status === 401) {
         setIsLoggedIn(false);
         setShowAuthModal(true);
@@ -168,12 +170,10 @@ function App() {
     try {
       localStorage.removeItem('token');
       
-      // Step 1: Call signup API
       const signupResponse = await axios.post('http://localhost:8000/api/signup', {
         firstName, lastName, email, password,
       });
   
-      // Step 2: Now, immediately sign in after successful signup
       const signinResponse = await api.post('/signin', {
         email,
         password,
@@ -184,7 +184,6 @@ function App() {
       setIsLoggedIn(true);
       setShowAuthModal(false);
   
-      // Fetch the user's expenses after signing in
       const expensesResponse = await api.get('/expenses');
       setExpenses(expensesResponse.data);
   
@@ -240,6 +239,21 @@ function App() {
       .filter(expense => expense.category === cat)
       .reduce((sum, expense) => sum + expense.amount, 0),
   })).filter(item => item.value > 0);
+
+
+
+
+  const startIndex = (currentPage - 1) * expensesPerPage;
+  const currentExpenses = filteredExpenses.slice(startIndex, startIndex + expensesPerPage);
+
+  const handlePrevPage = () => {
+    if (currentPage > 1) setCurrentPage(currentPage - 1);
+  };
+
+  const handleNextPage = () => {
+    const totalPages = Math.ceil(filteredExpenses.length / expensesPerPage);
+    if (currentPage < totalPages) setCurrentPage(currentPage + 1);
+  };
 
   return (
     <div className="min-h-screen bg-background bg-[url('https://images.unsplash.com/photo-1579621970563-ebec7560ff3e?auto=format&fit=crop&q=80')] bg-cover bg-fixed bg-center">
@@ -468,72 +482,79 @@ function App() {
           </div>
 
           <Card className="mt-8 p-8 shadow-lg animate-fade-in glass-effect hover:shadow-xl transition-shadow">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-2xl font-semibold">Recent Expenses</h2>
+      <div className="flex justify-between items-center mb-6">
+        <h2 className="text-2xl font-semibold">Recent Expenses</h2>
+        <div className="flex items-center gap-4">
+          <Select value={filterCategory} onValueChange={setFilterCategory}>
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="Filter by category" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Categories</SelectItem>
+              {categories.map((cat) => (
+                <SelectItem key={cat} value={cat}>
+                  {cat}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+      <div className="space-y-4">
+        {currentExpenses.length === 0 ? (
+          <div className="text-center py-12">
+            <p className="text-muted-foreground text-lg">
+              No expenses found. {filterCategory === 'all' || !filterCategory ? "Start by adding your first expense!" : "Try changing the filter."}
+            </p>
+          </div>
+        ) : (
+          currentExpenses.map((expense) => (
+            <div
+              key={expense.id}
+              className="flex items-center justify-between p-4 rounded-lg bg-primary/5 hover:bg-primary/10 transition-all hover:scale-[1.01] group"
+            >
               <div className="flex items-center gap-4">
-                <Select value={filterCategory} onValueChange={setFilterCategory}>
-                  <SelectTrigger className="w-[180px]">
-                    <SelectValue placeholder="Filter by category" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Categories</SelectItem>
-                    {categories.map((cat) => (
-                      <SelectItem key={cat} value={cat}>
-                        {cat}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <div className="p-2 rounded-full bg-primary/10">
+                  <Calendar className="h-5 w-5 text-primary" />
+                </div>
+                <div>
+                  <p className="font-medium text-lg">{expense.category}</p>
+                  <div className="flex items-center gap-2">
+                    <p className="text-sm text-muted-foreground">
+                      {format(new Date(expense.date), 'PPP')}
+                    </p>
+                    {expense.description && (
+                      <>
+                        <span className="text-muted-foreground">•</span>
+                        <p className="text-sm text-muted-foreground">{expense.description}</p>
+                      </>
+                    )}
+                  </div>
+                </div>
+              </div>
+              <div className="flex items-center gap-4">
+                <p className="text-xl font-semibold">${expense.amount.toFixed(2)}</p>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="opacity-0 group-hover:opacity-100 transition-opacity"
+                  onClick={() => handleDeleteExpense(expense.id)}
+                >
+                  <Trash2 className="h-4 w-4 text-destructive" />
+                </Button>
               </div>
             </div>
-            <div className="space-y-4">
-              {filteredExpenses.length === 0 ? (
-                <div className="text-center py-12">
-                  <p className="text-muted-foreground text-lg">
-                    No expenses found. {filterCategory === 'all' || !filterCategory ? "Start by adding your first expense!" : "Try changing the filter."}
-                  </p>
-                </div>
-              ) : (
-                filteredExpenses.map((expense) => (
-                  <div
-                    key={expense.id}
-                    className="flex items-center justify-between p-4 rounded-lg bg-primary/5 hover:bg-primary/10 transition-all hover:scale-[1.01] group"
-                  >
-                    <div className="flex items-center gap-4">
-                      <div className="p-2 rounded-full bg-primary/10">
-                        <Calendar className="h-5 w-5 text-primary" />
-                      </div>
-                      <div>
-                        <p className="font-medium text-lg">{expense.category}</p>
-                        <div className="flex items-center gap-2">
-                          <p className="text-sm text-muted-foreground">
-                            {format(new Date(expense.date), 'PPP')}
-                          </p>
-                          {expense.description && (
-                            <>
-                              <span className="text-muted-foreground">•</span>
-                              <p className="text-sm text-muted-foreground">{expense.description}</p>
-                            </>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-4">
-                      <p className="text-xl font-semibold">${expense.amount.toFixed(2)}</p>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="opacity-0 group-hover:opacity-100 transition-opacity"
-                        onClick={() => handleDeleteExpense(expense.id)}
-                      >
-                        <Trash2 className="h-4 w-4 text-destructive" />
-                      </Button>
-                    </div>
-                  </div>
-                ))
-              )}
-            </div>
-          </Card>
+          ))
+        )}
+      </div>
+
+      {/* Pagination Controls */}
+      <div className="flex justify-between items-center mt-4">
+        <Button onClick={handlePrevPage} disabled={currentPage === 1}>Previous</Button>
+        <p>Page {currentPage}</p>
+        <Button onClick={handleNextPage} disabled={currentPage === Math.ceil(filteredExpenses.length / expensesPerPage)}>Next</Button>
+      </div>
+    </Card>
         </div>
       </div>
 
