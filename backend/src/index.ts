@@ -11,11 +11,11 @@ const PORT=8000
 
 
 const corsOptions = {
-    origin: ['https://expense-tracker-orcin-five.vercel.app/'], 
+    origin: ['https://expense-tracker-orcin-five.vercel.app',"http://localhost:5173",], 
     credentials: true,
   };
   
-  app.use(cors(corsOptions));
+app.use(cors(corsOptions));
   
 app.use(express.json())
 app.use(cookieParser());
