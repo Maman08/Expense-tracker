@@ -9,10 +9,16 @@ dotenv.config()
 const app=express();
 const PORT=8000
 
-app.use(express.json())
-app.use(cors({ origin: 'https://expense-tracker-orcin-five.vercel.app/', credentials: true }));
-app.use(cookieParser());
 
+app.use(cors({
+    origin: 'https://expense-tracker-orcin-five.vercel.app',
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],  
+    allowedHeaders: ['Content-Type', 'Authorization']  
+  }));
+app.use(express.json())
+app.use(cookieParser());
+app.options('*', cors());
 connectDB();
 
 app.get('/',(req,res)=>{
@@ -27,3 +33,5 @@ app.use('/api', expenseRoutes);
 app.listen(PORT,()=>{
     console.log(`server is running on port ${PORT}`)
 })
+
+
