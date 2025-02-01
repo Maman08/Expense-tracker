@@ -1,9 +1,9 @@
 import Expense, { IExpense } from "../models/expense";
 
-export const createExpense = async (req: any, res: any) => {
-  const { amount, category, date, description } = req.body;
+export const createExpense =async(req:any,res:any)=>{
+  const{amount,category,date,description}=req.body;
 
-  try {
+  try{
     if(!req.user) return res.status(401).json({message:"Unauthorized"});
     console.log("userid",req.user.userId)
     const expense =new Expense({amount,category,date,description,userId: req.user.userId });
@@ -11,23 +11,23 @@ export const createExpense = async (req: any, res: any) => {
     await expense.save();
     return res.status(201).json(expense);
     // console.log("didnt reach here")
-  } catch(error){
+  }catch(error){
     return res.status(500).json({ message:'Server error' });
   }
 };
 
-export const getExpenses = async (req: any, res: any) => {
-  try {
+export const getExpenses=async(req:any,res:any)=>{
+  try{
     if(!req.user) return res.status(401).json({message:"Unauthorized"});
     console.log("Hello",req.user.userId )
     const expenses = await Expense.find({userId: req.user.userId });
     return res.json(expenses);
-  } catch (error) {
+  }catch(error){
     return res.status(500).json({ message: 'Server error' });
   }
 };
 
-export const updateExpense = async (req: any, res: any) => {
+export const updateExpense=async(req:any,res:any)=>{
   const { id } = req.params;
   const { amount, category, date, description } = req.body;
 

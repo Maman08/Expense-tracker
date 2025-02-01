@@ -45,6 +45,7 @@ function App() {
   const [date, setDate] = useState<Date>(new Date());
   const [filterCategory, setFilterCategory] = useState('');
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [showUpdateConfirm, setShowUpdateConfirm] = useState(false);
   const [selectedExpense, setSelectedExpense] = useState<string | null>(null);
   const [firstName, setFirstName] = useState('');
   const[lastName,setLastName]=useState('');
@@ -127,43 +128,46 @@ function App() {
       }
     }
   };
+
+  
   
 
-  const handleDeleteExpense = (id: string) => {
+  // const handleDeleteExpense =async(id: string) => {
+  //   setSelectedExpense(id);
+  //   confirmDelete(id)
+  //   setShowDeleteConfirm(true);
+  // };
+  const handleUpdateExpense=(id: string) => {
     setSelectedExpense(id);
-    setShowDeleteConfirm(true);
+    setShowUpdateConfirm(true);
   };
 
-  const confirmDelete = async () => {
+  // const confirmDelete = async (selectedExpense:string) => {
+  //   console.log('selected expense',selectedExpense)
+  //   if (selectedExpense) {
+  //     try {
+  //       await axios.delete(`${'http://localhost:8000/api/expense'}/${selectedExpense}`);
+  //       setExpenses((prev) => prev.filter((exp) => exp.id !== selectedExpense));
+  //       setShowDeleteConfirm(false);
+  //       setSelectedExpense(null);
+  //     } catch (error) {
+  //       console.error("Error deleting expense:", error);
+  //     }
+  //   }
+  // };
+  
+  const confirmDelete = async (selectedExpense: string) => {
+    console.log('selected expense', selectedExpense);
     if (selectedExpense) {
       try {
         await axios.delete(`${'http://localhost:8000/api/expense'}/${selectedExpense}`);
-        setExpenses((prev) => prev.filter((exp) => exp.id !== selectedExpense));
-        setShowDeleteConfirm(false);
+        setExpenses((prev) => prev.filter((exp) => exp._id !== selectedExpense)); 
         setSelectedExpense(null);
       } catch (error) {
         console.error("Error deleting expense:", error);
       }
     }
   };
-  // const handleSignup=async()=>{
-
-  // const handleSignup = async () => {
-  //   try {
-  //     localStorage.removeItem('token');
-  //     const response = await axios.post('http://localhost:8000/api/signup', {
-  //       firstName, lastName, email, password,
-  //     });
-      
-  //     localStorage.setItem('token', response.data.token);
-  //     setIsLoggedIn(true);
-  //     setShowAuthModal(false);
-  //     const expensesResponse = await api.get('/expenses');
-  //     setExpenses(expensesResponse.data);
-  //   } catch (error:any) {
-  //     console.log('Signup error:', error.response?.data?.message);
-  //   }
-  // };
   
 
   const handleSignup = async () => {
@@ -482,83 +486,83 @@ function App() {
           </div>
 
           <Card className="mt-8 p-8 shadow-lg animate-fade-in glass-effect hover:shadow-xl transition-shadow">
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-semibold">Recent Expenses</h2>
-        <div className="flex items-center gap-4">
-          <Select value={filterCategory} onValueChange={setFilterCategory}>
-            <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Filter by category" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Categories</SelectItem>
-              {categories.map((cat) => (
-                <SelectItem key={cat} value={cat}>
-                  {cat}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
-      <div className="space-y-4">
-        {currentExpenses.length === 0 ? (
-          <div className="text-center py-12">
-            <p className="text-muted-foreground text-lg">
-              No expenses found. {filterCategory === 'all' || !filterCategory ? "Start by adding your first expense!" : "Try changing the filter."}
-            </p>
-          </div>
-        ) : (
-          currentExpenses.map((expense) => (
-            <div
-              key={expense.id}
-              className="flex items-center justify-between p-4 rounded-lg bg-primary/5 hover:bg-primary/10 transition-all hover:scale-[1.01] group"
-            >
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-2xl font-semibold">Recent Expenses</h2>
               <div className="flex items-center gap-4">
-                <div className="p-2 rounded-full bg-primary/10">
-                  <Calendar className="h-5 w-5 text-primary" />
-                </div>
-                <div>
-                  <p className="font-medium text-lg">{expense.category}</p>
-                  <div className="flex items-center gap-2">
-                    <p className="text-sm text-muted-foreground">
-                      {format(new Date(expense.date), 'PPP')}
-                    </p>
-                    {expense.description && (
-                      <>
-                        <span className="text-muted-foreground">•</span>
-                        <p className="text-sm text-muted-foreground">{expense.description}</p>
-                      </>
-                    )}
-                  </div>
-                </div>
-              </div>
-              <div className="flex items-center gap-4">
-                <p className="text-xl font-semibold">${expense.amount.toFixed(2)}</p>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="opacity-0 group-hover:opacity-100 transition-opacity"
-                  onClick={() => handleDeleteExpense(expense.id)}
-                >
-                  <Trash2 className="h-4 w-4 text-destructive" />
-                </Button>
+                <Select value={filterCategory} onValueChange={setFilterCategory}>
+                  <SelectTrigger className="w-[180px]">
+                    <SelectValue placeholder="Filter by category" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Categories</SelectItem>
+                    {categories.map((cat) => (
+                      <SelectItem key={cat} value={cat}>
+                        {cat}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
             </div>
-          ))
-        )}
-      </div>
+            <div className="space-y-4">
+              {currentExpenses.length === 0 ? (
+                <div className="text-center py-12">
+                  <p className="text-muted-foreground text-lg">
+                    No expenses found. {filterCategory === 'all' || !filterCategory ? "Start by adding your first expense!" : "Try changing the filter."}
+                  </p>
+                </div>
+              ) : (
+                currentExpenses.map((expense) => (
+                  <div
+                    key={expense.id}
+                    className="flex items-center justify-between p-4 rounded-lg bg-primary/5 hover:bg-primary/10 transition-all hover:scale-[1.01] group"
+                    onClick={() => handleUpdateExpense(expense.id)}
+                  >
+                    <div className="flex items-center gap-4">
+                      <div className="p-2 rounded-full bg-primary/10">
+                        <Calendar className="h-5 w-5 text-primary" />
+                      </div>
+                      <div>
+                        <p className="font-medium text-lg">{expense.category}</p>
+                        <div className="flex items-center gap-2">
+                          <p className="text-sm text-muted-foreground">
+                            {format(new Date(expense.date), 'PPP')}
+                          </p>
+                          {expense.description && (
+                            <>
+                              <span className="text-muted-foreground">•</span>
+                              <p className="text-sm text-muted-foreground">{expense.description}</p>
+                            </>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-4">
+                      <p className="text-xl font-semibold">${expense.amount.toFixed(2)}</p>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="opacity-0 group-hover:opacity-100 transition-opacity"
+                        onClick={() => confirmDelete(expense._id)}
+                      >
+                        <Trash2 className="h-4 w-4 text-destructive" />
+                      </Button>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
 
-      {/* Pagination Controls */}
-      <div className="flex justify-between items-center mt-4">
-        <Button onClick={handlePrevPage} disabled={currentPage === 1}>Previous</Button>
-        <p>Page {currentPage}</p>
-        <Button onClick={handleNextPage} disabled={currentPage === Math.ceil(filteredExpenses.length / expensesPerPage)}>Next</Button>
-      </div>
-    </Card>
+            <div className="flex justify-between items-center mt-4">
+              <Button onClick={handlePrevPage} disabled={currentPage === 1}>Previous</Button>
+              <p>Page {currentPage}</p>
+              <Button onClick={handleNextPage} disabled={currentPage === Math.ceil(filteredExpenses.length / expensesPerPage)}>Next</Button>
+            </div>
+          </Card>
         </div>
       </div>
 
-      <Dialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
+      {/* <Dialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
         <DialogContent className="sm:max-w-[425px] glass-effect">
           <DialogHeader>
             <DialogTitle>Confirm Delete</DialogTitle>
@@ -574,6 +578,87 @@ function App() {
               </Button>
             </div>
           </div>
+        </DialogContent>
+      </Dialog> */}
+
+      <Dialog open={showUpdateConfirm} onOpenChange={setShowUpdateConfirm}>
+        <DialogContent className="sm:max-w-[425px] glass-effect">
+        <Card className="p-8 shadow-lg animate-slide-up glass-effect hover:shadow-xl transition-shadow">
+              <h2 className="text-2xl font-semibold flex items-center gap-2 mb-6">
+                <Plus className="h-6 w-6" /> Add Expense
+              </h2>
+              <div className="space-y-6">
+                <div className="space-y-2">
+                  <Label htmlFor="amount">Amount</Label>
+                  <div className="relative">
+                    <DollarSign className="absolute left-3 top-2.5 h-5 w-5 text-muted-foreground" />
+                    <Input
+                      id="amount"
+                      type="number"
+                      placeholder="0.00"
+                      className="pl-10"
+                      value={amount}
+                      onChange={(e) => setAmount(e.target.value)}
+                    />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="category">Category</Label>
+                  <Select value={category} onValueChange={setCategory}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select category" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {categories.map((cat) => (
+                        <SelectItem key={cat} value={cat}>
+                          {cat}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="date">Date</Label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className={cn(
+                          "w-full justify-start text-left font-normal",
+                          !date && "text-muted-foreground"
+                        )}
+                      >
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {date ? format(date, "PPP") : <span>Pick a date</span>}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0">
+                      <CalendarComponent
+                        mode="single"
+                        selected={date}
+                        onSelect={(date) => date && setDate(date)}
+                        initialFocus
+                      />
+                    </PopoverContent>
+                  </Popover>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="description">Description (Optional)</Label>
+                  <Input
+                    id="description"
+                    placeholder="Enter description"
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                  />
+                </div>
+                <Button 
+                  className="w-full text-lg py-6 transition-all hover:scale-[1.02] bg-gradient-to-r from-primary to-primary/80" 
+                  onClick={handleUpdateExpense}
+                >
+                  Add Expense
+                </Button>
+              </div>
+            </Card>
         </DialogContent>
       </Dialog>
     </div>
