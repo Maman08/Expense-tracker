@@ -1,6 +1,7 @@
 {
     "build": {
-      "baseDirectory": "backend"
+      "baseDirectory": "backend",
+      "dockerfile": "Dockerfile"
     }
   }
   
