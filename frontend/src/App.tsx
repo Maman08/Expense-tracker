@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Moon, Sun, Plus, PieChart, DollarSign, Wallet, LogIn, UserPlus, Trash2, Calendar, Filter, Pencil } from 'lucide-react';
+import { Moon, Sun, Plus, PieChart, DollarSign, Wallet, LogIn, UserPlus, Trash2, Calendar, Pencil } from 'lucide-react';
 import { useTheme } from './hooks/use-theme.ts';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -46,7 +46,6 @@ function App() {
   const [description, setDescription] = useState('');
   const [date, setDate] = useState<Date>(new Date());
   const [filterCategory, setFilterCategory] = useState('');
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [showUpdateConfirm, setShowUpdateConfirm] = useState(false);
   const [selectedExpense, setSelectedExpense] = useState<string | null>(null);
   const [firstName, setFirstName] = useState('');
@@ -54,7 +53,7 @@ function App() {
   const [email,setEmail]=useState('');
   const [password,setPassword]=useState('');
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
-  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [_showAuthModal, _setShowAuthModal] = useState(false);
   const [firstNamee, setFirstNamee] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const expensesPerPage = 5;
@@ -91,7 +90,8 @@ function App() {
     const token = localStorage.getItem('token');
     if (token) {
       const decodedToken = jwtDecode(token);
-      console.log(decodedToken.firstName)
+      // console.log(decodedToken.firstName)
+      // @ts-ignore
       return decodedToken.firstName; 
     }
     return null;
@@ -125,7 +125,7 @@ function App() {
       console.error("Error adding expense:", error);
       if (error.response?.status === 401) {
         setIsLoggedIn(false);
-        setShowAuthModal(true);
+        _setShowAuthModal(true);
         console.log('login kro ')
       }
     }
@@ -183,15 +183,11 @@ function App() {
       // Handle unauthorized error
       if (error.response?.status === 401) {
         setIsLoggedIn(false);
-        setShowAuthModal(true);
+        _setShowAuthModal(true);
       }
     }
   };
-    
-  const check=()=>{
-    console.log("yhaa aayaaa")
-  }
-  
+ 
   const confirmDelete = async () => {
     console.log('selected expense', selectedExpense);
     if (selectedExpense) {
@@ -214,6 +210,7 @@ function App() {
       const signupResponse = await axios.post('http://localhost:8000/api/signup', {
         firstName, lastName, email, password,
       });
+      console.log(signupResponse)
   
       const signinResponse = await api.post('/signin', {
         email,
@@ -223,7 +220,7 @@ function App() {
       localStorage.setItem('token', signinResponse.data.token);
       console.log("fid",signinResponse.data.token)
       setIsLoggedIn(true);
-      setShowAuthModal(false);
+      _setShowAuthModal(false);
   
       const expensesResponse = await api.get('/expenses');
       setExpenses(expensesResponse.data);
@@ -243,11 +240,12 @@ function App() {
       localStorage.setItem('token', response.data.token);
       console.log("fid",response.data.token)
       const decodedToken = jwtDecode(response.data.token);
+      // @ts-ignore
     const userId = decodedToken.firstName;
 
     setFirstNamee(userId);
       setIsLoggedIn(true);
-      setShowAuthModal(false);
+      _setShowAuthModal(false);
       const expensesResponse = await api.get('/expenses');
       setExpenses(expensesResponse.data);
     }catch(error){
