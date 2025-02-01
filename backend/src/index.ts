@@ -11,8 +11,8 @@ const PORT=8000
 
 
 const corsOptions = {
-    origin: ['https://expense-tracker-orcin-five.vercel.app'], // List allowed origins
-    credentials: true, // Allow credentials like cookies to be sent
+    origin: ['https://expense-tracker-orcin-five.vercel.app/'], 
+    credentials: true,
   };
   
   app.use(cors(corsOptions));
