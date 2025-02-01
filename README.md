@@ -6,7 +6,7 @@ The Mini Expense Tracker is a full-stack application designed to allow users to 
 ### Tech Stack
 - **Frontend**: ReactJS, Shadcn, Recharts for the graphs
 - **Backend**: Node.js with TypeScript, JWT for authentication, MongoDB (using Mongoose ORM) for database management
-- **Authentication**: JWT with HTTP-only cookies
+- **Authentication**: JWT
 - **Database**: MongoDB (Mongoose)
 
 ## Features
