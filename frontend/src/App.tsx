@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Moon, Sun, Plus, PieChart, DollarSign, Wallet, LogIn, UserPlus, Trash2, Calendar, Filter } from 'lucide-react';
+import { Moon, Sun, Plus, PieChart, DollarSign, Wallet, LogIn, UserPlus, Trash2, Calendar, Filter, Pencil } from 'lucide-react';
 import { useTheme } from './hooks/use-theme.ts';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -16,13 +16,15 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import axios from 'axios';
 import api from './utils/axios-config.ts';
 import { jwtDecode } from "jwt-decode";
+import { toast } from "react-toastify";
 
 type Expense = {
-  id: string;
-  amount: number;
-  category: string;
-  description: string;
-  date: Date;
+  _id: string;
+  id: any;
+  amount: any;
+  category: any;
+  description: any;
+  date: any;
 };
 
 const categories = [
@@ -130,31 +132,65 @@ function App() {
   };
 
   
+
+  const handleUpdateExpense = (id: string) => {
+    const expenseToUpdate = expenses.find(exp => exp._id === id);
+    if (expenseToUpdate) {
+      setAmount(expenseToUpdate.amount.toString()); 
+      setCategory(expenseToUpdate.category);
+      setDate(new Date(expenseToUpdate.date));
+      setDescription(expenseToUpdate.description || '');
+      setSelectedExpense(id);
+      setShowUpdateConfirm(true);
+    }
+  };
   
 
-  // const handleDeleteExpense =async(id: string) => {
-  //   setSelectedExpense(id);
-  //   confirmDelete(id)
-  //   setShowDeleteConfirm(true);
-  // };
-  const handleUpdateExpense=(id: string) => {
-    setSelectedExpense(id);
-    setShowUpdateConfirm(true);
-  };
+  const handleSubmitUpdate = async () => {
+    console.log("hello")
+    console.log("selected expense to update ",selectedExpense)
+    if (!selectedExpense) return;
 
-  // const confirmDelete = async (selectedExpense:string) => {
-  //   console.log('selected expense',selectedExpense)
-  //   if (selectedExpense) {
-  //     try {
-  //       await axios.delete(`${'http://localhost:8000/api/expense'}/${selectedExpense}`);
-  //       setExpenses((prev) => prev.filter((exp) => exp.id !== selectedExpense));
-  //       setShowDeleteConfirm(false);
-  //       setSelectedExpense(null);
-  //     } catch (error) {
-  //       console.error("Error deleting expense:", error);
-  //     }
-  //   }
-  // };
+    const updatedExpense = {
+      amount: Number(amount),
+      category,
+      date,
+      description
+    };
+
+    try {
+      const response = await api.put(`/expense/${selectedExpense}`, updatedExpense);
+      
+      setExpenses(prev => 
+        prev.map(exp => 
+          exp._id === selectedExpense ? { ...response.data, _id: selectedExpense } : exp
+        )
+      );
+
+      setAmount('');
+      setCategory('');
+      setDescription('');
+      setDate(new Date());
+      setSelectedExpense(null);
+      setShowUpdateConfirm(false);
+      
+      // Optional: Add toast notification for success
+      toast.success('Expense updated successfully');
+    } catch (error:any) {
+      console.error("Error updating expense:", error);
+      toast.error('Failed to update expense');
+      
+      // Handle unauthorized error
+      if (error.response?.status === 401) {
+        setIsLoggedIn(false);
+        setShowAuthModal(true);
+      }
+    }
+  };
+    
+  const check=()=>{
+    console.log("yhaa aayaaa")
+  }
   
   const confirmDelete = async (selectedExpense: string) => {
     console.log('selected expense', selectedExpense);
@@ -514,9 +550,10 @@ function App() {
               ) : (
                 currentExpenses.map((expense) => (
                   <div
-                    key={expense.id}
+                    key={expense._id}
                     className="flex items-center justify-between p-4 rounded-lg bg-primary/5 hover:bg-primary/10 transition-all hover:scale-[1.01] group"
-                    onClick={() => handleUpdateExpense(expense.id)}
+                    onClick={() => handleUpdateExpense(expense._id)}
+                    
                   >
                     <div className="flex items-center gap-4">
                       <div className="p-2 rounded-full bg-primary/10">
@@ -562,105 +599,88 @@ function App() {
         </div>
       </div>
 
-      {/* <Dialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
-        <DialogContent className="sm:max-w-[425px] glass-effect">
-          <DialogHeader>
-            <DialogTitle>Confirm Delete</DialogTitle>
-          </DialogHeader>
-          <div className="py-4">
-            <p>Are you sure you want to delete this expense?</p>
-            <div className="flex justify-end gap-4 mt-4">
-              <Button variant="outline" onClick={() => setShowDeleteConfirm(false)}>
-                Cancel
-              </Button>
-              <Button variant="destructive" onClick={confirmDelete}>
-                Delete
-              </Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog> */}
+      
 
       <Dialog open={showUpdateConfirm} onOpenChange={setShowUpdateConfirm}>
-        <DialogContent className="sm:max-w-[425px] glass-effect">
-        <Card className="p-8 shadow-lg animate-slide-up glass-effect hover:shadow-xl transition-shadow">
-              <h2 className="text-2xl font-semibold flex items-center gap-2 mb-6">
-                <Plus className="h-6 w-6" /> Add Expense
-              </h2>
-              <div className="space-y-6">
-                <div className="space-y-2">
-                  <Label htmlFor="amount">Amount</Label>
-                  <div className="relative">
-                    <DollarSign className="absolute left-3 top-2.5 h-5 w-5 text-muted-foreground" />
-                    <Input
-                      id="amount"
-                      type="number"
-                      placeholder="0.00"
-                      className="pl-10"
-                      value={amount}
-                      onChange={(e) => setAmount(e.target.value)}
-                    />
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="category">Category</Label>
-                  <Select value={category} onValueChange={setCategory}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select category" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {categories.map((cat) => (
-                        <SelectItem key={cat} value={cat}>
-                          {cat}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="date">Date</Label>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button
-                        variant="outline"
-                        className={cn(
-                          "w-full justify-start text-left font-normal",
-                          !date && "text-muted-foreground"
-                        )}
-                      >
-                        <CalendarIcon className="mr-2 h-4 w-4" />
-                        {date ? format(date, "PPP") : <span>Pick a date</span>}
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0">
-                      <CalendarComponent
-                        mode="single"
-                        selected={date}
-                        onSelect={(date) => date && setDate(date)}
-                        initialFocus
-                      />
-                    </PopoverContent>
-                  </Popover>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="description">Description (Optional)</Label>
-                  <Input
-                    id="description"
-                    placeholder="Enter description"
-                    value={description}
-                    onChange={(e) => setDescription(e.target.value)}
-                  />
-                </div>
-                <Button 
-                  className="w-full text-lg py-6 transition-all hover:scale-[1.02] bg-gradient-to-r from-primary to-primary/80" 
-                  onClick={handleUpdateExpense}
-                >
-                  Add Expense
-                </Button>
-              </div>
-            </Card>
-        </DialogContent>
-      </Dialog>
+  <DialogContent className="sm:max-w-[425px] glass-effect">
+    <Card className="p-8 shadow-lg animate-slide-up glass-effect hover:shadow-xl transition-shadow">
+      <h2 className="text-2xl font-semibold flex items-center gap-2 mb-6">
+        <Pencil className="h-6 w-6" /> Update Expense
+      </h2>
+      <div className="space-y-6">
+        <div className="space-y-2">
+          <Label htmlFor="amount">Amount</Label>
+          <div className="relative">
+            <DollarSign className="absolute left-3 top-2.5 h-5 w-5 text-muted-foreground" />
+            <Input
+              id="amount"
+              type="number"
+              placeholder="0.00"
+              className="pl-10"
+              value={amount}
+              onChange={(e) => setAmount(e.target.value)}
+            />
+          </div>
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="category">Category</Label>
+          <Select value={category} onValueChange={setCategory}>
+            <SelectTrigger>
+              <SelectValue placeholder="Select category" />
+            </SelectTrigger>
+            <SelectContent>
+              {categories.map((cat) => (
+                <SelectItem key={cat} value={cat}>
+                  {cat}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="date">Date</Label>
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                className={cn(
+                  "w-full justify-start text-left font-normal",
+                  !date && "text-muted-foreground"
+                )}
+              >
+                <CalendarIcon className="mr-2 h-4 w-4" />
+                {date ? format(date, "PPP") : <span>Pick a date</span>}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0">
+              <CalendarComponent
+                mode="single"
+                selected={date}
+                onSelect={(date) => date && setDate(date)}
+                initialFocus
+              />
+            </PopoverContent>
+          </Popover>
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="description">Description (Optional)</Label>
+          <Input
+            id="description"
+            placeholder="Enter description"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+          />
+        </div>
+        <Button 
+          className="w-full text-lg py-6 transition-all hover:scale-[1.02] bg-gradient-to-r from-primary to-primary/80" 
+          onClick={handleSubmitUpdate}
+        >
+          Update Expense
+        </Button>
+      </div>
+    </Card>
+  </DialogContent>
+</Dialog>
     </div>
   );
 }
