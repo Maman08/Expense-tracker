@@ -27,7 +27,7 @@ export const getExpenses=async(req:any,res:any)=>{
   }
 };
 
-export const updateExpense=async(req:any,res:any)=>{
+export const updateExpense = async (req: any, res: any) => {
   const { id } = req.params;
   const { amount, category, date, description } = req.body;
 
@@ -44,6 +44,7 @@ export const updateExpense=async(req:any,res:any)=>{
     return res.status(500).json({ message: 'Server error' });
   }
 };
+
 
 export const deleteExpense = async (req: any, res: any) => {
   const { id } = req.params;
