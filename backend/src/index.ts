@@ -18,6 +18,9 @@ connectDB();
 app.get('/',(req,res)=>{
    res.send('hello ')
 })
+app.get('/test',(req,res)=>{
+    res.send('hello test')
+ })
 app.use('/api', authRoutes);
 app.use('/api', expenseRoutes);
 
