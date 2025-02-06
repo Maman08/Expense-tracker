@@ -11,7 +11,7 @@ const signup=async(req: any,res: any)=>{
         if(userAlready){
             return res.status(400).json({message:"User already Exist"})
         }
-        if (!email.endsWith("@gmail.com")) {
+        if (!email || !email.endsWith("@gmail.com")) {
             return res.status(400).json({ message: "Enter a valid Gmail address" });
         }
         const hashedPassword=await bcrypt.hash(password,10);
