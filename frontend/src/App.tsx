@@ -17,7 +17,7 @@ import axios from 'axios';
 import api from './utils/axios-config.ts';
 import { jwtDecode } from "jwt-decode";
 import { toast } from "react-toastify";
-
+import MonthlyExpenseChart from './pages/MonthlyExpenseChart.tsx';
 type Expense = {
   _id: string;
   id: any;
@@ -585,6 +585,7 @@ function App() {
               <Button onClick={handleNextPage} disabled={currentPage === Math.ceil(filteredExpenses.length / expensesPerPage)}>Next</Button>
             </div>
           </Card>
+          <MonthlyExpenseChart expenses={expenses}/>
         </div>
       </div>
 
